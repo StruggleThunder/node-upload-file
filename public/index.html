@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件上传</title>
+</head>
+
+<body>
+
+    <input type="file" id="file" onchange="onUploadFile(this)" />
+    <p style="font-size: 11px; color: #f13;">
+        提示：选择完文件后，会立即上传到服务器
+    </p>
+
+
+    <script src="./axios.min.js"></script>
+    <script>
+
+        function onUploadFile(evt) {
+            const file = evt.files[0];
+
+            // ===== 文件上传到服务器 =====
+            const fd = new FormData();
+            fd.append('file', file);
+            // 保存到服务端的哪个文件夹下面，可以自由设置，也可以不填
+            const folderName = "images";
+            const prefix = "http://127.0.0.1";
+            axios({
+                method: "POST",
+                url: `${prefix}/api/uploadFile?folderName=${folderName}`,
+                data: fd,
+                headers: {
+                    "Content-Type": "multipart/form-data"
+                }
+            }).then(response => {
+                const res = response.data;
+                if (res.fail) {
+                    return alert('文件上传失败')
+                }
+
+                // 插入上传成功的文件链接到页面上
+                const pEle = document.createElement('p');
+                const aEle = document.createElement('a');
+                const path = `${prefix}${res.data.filePath}`;
+                aEle.innerHTML = path;
+                aEle.setAttribute('target', '_blank');
+                aEle.setAttribute('href', path);
+
+                pEle.appendChild(aEle);
+                document.body.appendChild(pEle);
+                
+                // 清空表单值
+                document.querySelector('#file').value = "";
+
+
+            }).catch(err => {
+                console.error(err);
+            });
+
+        }
+
+    </script>
+
+</body>
+
+</html>
